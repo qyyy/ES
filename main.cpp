@@ -20,19 +20,17 @@ bool cmp(pair<vector<int>,vector<float>> &a, pair<vector<int>,vector<float>> &b)
 }
 
 template <class T> bool is_out_of_bound(T x, T bound){
-    if(x>bound||x<-bound)
-        return true;
-    return false;
+        return x>bound||x<-bound;
 }
 
 void calculate_mu_from_parent(vector<pair<vector<int>,vector<float>>> &parent, vector<pair<vector<int>,vector<float>>> &child, unsigned int mu, unsigned int i, default_random_engine &e, normal_distribution<float> &dis){
     for(unsigned int j=0;j<2;j++){
         do{
             child[i].second[j] = cal_theata(parent[i].second[j],dis(e));
-        }while(is_out_of_bound(child[i].second[j], (float)6.5)||(child[i].second[j]>-0.000001&&child[i].second[j]<0.000001));
+        }while(is_out_of_bound(child[i].second[j], (float)6.5)||(child[i].second[j]>-0.000001&&child[i].second[j]<0.000001)||child[i].second[j]<=1.0);
         do{
             child[mu-i-1].second[j] = cal_theata(parent[i].second[j],dis(e));
-        }while(is_out_of_bound(child[mu - i - 1].second[j], (float)6.5));
+        }while(is_out_of_bound(child[mu - i - 1].second[j], (float)6.5)||(child[mu - i - 1].second[j]>-0.000001&&child[mu - i - 1].second[j]<0.000001)||child[mu-i-1].second[j]<=1.0);
     }
 }
 
@@ -79,12 +77,31 @@ template <class T> void swap_component(T &a, T &b){
     b = temp;
 }
 
+void random_swap_x(vector<pair<vector<int>,vector<float>>> &child, int i, int random_int){
+    if(random_int==0)
+        swap_component(child[i].second[0], child[i + 1].second[0]);
+    else if(random_int==1)
+        swap_component(child[i].second[0],child[i+1].second[1]);
+    else if(random_int==2)
+        swap_component(child[i].second[1],child[i+1].second[0]);
+}
+
+void random_swap_mu(vector<pair<vector<int>,vector<float>>> &child, int i, int random_int){
+    if(random_int==0)
+        swap_component(child[i].second[0],child[i+1].second[0]);
+    else if(random_int==1)
+        swap_component(child[i].second[0],child[i+1].second[1]);
+    else if(random_int==2)
+        swap_component(child[i].second[1],child[i+1].second[0]);
+}
+
 void crossover(vector<pair<vector<int>,vector<float>>> &child, unsigned int mu){
+    srand((unsigned)time(0));
     for(unsigned int i = 0;i < mu;i+=2){
-        if(i!=mu-1&&rand()%2==0)
-            swap_component(child[i].first[0],child[i+1].first[1]);
-        if(i!=mu-1&&rand()%2==0)
-            swap_component(child[i].second[0],child[i+1].second[0]);
+        int random_int = rand()%4;
+        random_swap_x(child,i,random_int);
+        random_int = rand()%4;
+        random_swap_mu(child,i,random_int);
     }
 }
 
@@ -104,14 +121,14 @@ int es_do(vector<pair<vector<int>,vector<float>>> &parent){
     return calculate(parent[parentLength-1]);
 }
 
-void inti_vec(vector<pair<vector<int>,vector<float>>> &parent){//λ设为10，μ设为15
+void inti_vec(vector<pair<vector<int>,vector<float>>> &parent){//λ设为10，μ设为20
     srand((unsigned)time(NULL));
     int len = parent.size();
     for(int i=0;i<len;i++) {
         parent[i].first[0] = rand() % 21 - 10;
         parent[i].first[1] = rand() % 21 - 10;
-        parent[i].second[0] = (float)(10.0 / (rand() % 1000));
-        parent[i].second[1] = (float)(10.0 / (rand() % 1000));
+        parent[i].second[0] = 1.0;
+        parent[i].second[1] = 1.0;
     }
 }
 
